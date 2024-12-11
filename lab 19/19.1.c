@@ -1,74 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <time.h>
 #include <locale.h>
-// Функция для вычисления значения функции
-float func(float x) {
-    return pow(x, 3) + 3 * pow(x, 2) - 3;
-}
-
-int main() {
+int main(void) {
     setlocale(LC_ALL, "ru");
-    float x, start, end;
-    int choice;
-    FILE* file;
+    char fname[20] = "number.txt"; // имя файла
+    FILE* out; // файл чисел
 
-    // Ввод интервала и шага табуляции
-    printf("Введите начало интервала: ");
-    scanf("%f", &start);
-    printf("Введите конец интервала: ");
-    scanf("%f", &end);
-    printf("Введите шаг x: ");
-    scanf("%f", &x);
+    puts("Создание файла");
 
-    // Выбор действия пользователем
-    printf("Выберите действие:\n");
-    printf("1. Запись в новый файл\n");
-    printf("2. Дозапись в существующий файл\n");
-    scanf("%d", &choice);
-
-    // Открытие файла в соответствии с выбором пользователя
-    if (choice == 1) {
-        file = fopen("temp.txt", "w");
+    // Открытие файла для записи
+    if ((out = fopen(fname, "wt")) == NULL) {
+        printf("Ошибка открытия файла для записи");
+        return 0; // выход с ошибкой
     }
-    else if (choice == 2) {
-        file = fopen("temp.txt", "a");
-    }
-    else {
-        printf("Неверный выбор\n");
-        return 1;
-    }
+    srand(time(NULL));
+    int random_number = rand() % 10;
+    fprintf(out, "%d", random_number);
+    fclose(out);
+    system("start number.txt");
 
-    if (file == NULL) {
-        perror("Ошибка при открытии файла");
-        return 1;
-    }
-
-    // Запись заголовка таблицы
-    fprintf(file, " ________________________\n");
-    fprintf(file, "| %-9c |%9c(x)|\n", 'x', 'f');
-    fprintf(file, "|________________________|\n");
-
-    // Табулирование функции и запись результатов в файл
-    for (float i = start; i <= end; i += x) {
-        float result = func(i);
-        fprintf(file, "| %8.2f  |%12.2f|\n", i, result);
-        fprintf(file, "|________________________|\n");
-    }
-
-    // Закрытие файла
-    fclose(file);
-
-    // Открытие файла в текстовом редакторе по умолчанию
-#ifdef _WIN32
-    system("start temp.txt");
-#elif __linux__
-    system("xdg-open temp.txt");
-#elif __APPLE__
-    system("open temp.txt");
-#else
-    printf("Неизвестная операционная система\n");
-#endif
-
-    return 0;
+    return 1; // закрыть файл
 }

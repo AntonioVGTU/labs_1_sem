@@ -1,30 +1,27 @@
-#include<stdio.h>
-#include<locale.h>
-#include<string.h>
-#include<stdlib.h>
-
-typedef struct {
-    char material[20];
-    int length;
-    int ceilingWidth;
-    int wallHeight;
-} Cornice;
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+// Определение структуры для элемента связанного списка
 typedef struct Node {
-    Cornice data;
+    int data;
     struct Node* next;
 } Node;
 
-Node* arrayToList(Cornice* array, int size) {
+// Функция для создания нового узла
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Функция для преобразования массива в связанный список
+Node* arrayToLinkedList(int arr[], int size) {
     Node* head = NULL;
     Node* tail = NULL;
-
     for (int i = 0; i < size; i++) {
-        Node* newNode = (Node*)malloc(sizeof(Node));
-        newNode->data = array[i];
-        newNode->next = NULL;
-
-        if (!head) {
+        Node* newNode = createNode(arr[i]);
+        if (head == NULL) {
             head = newNode;
             tail = newNode;
         }
@@ -33,72 +30,129 @@ Node* arrayToList(Cornice* array, int size) {
             tail = newNode;
         }
     }
-
     return head;
 }
 
-void merge(Node** headRef) {
-    Node* head = *headRef;
-    if (!head || !head->next) return;
-
-    Node* mid = head;
-    Node* fast = head->next;
-
-    while (fast && fast->next) {
-        mid = mid->next;
-        fast = fast->next->next;
+// Функция для печати связанного списка
+void printLinkedList(Node* head) {
+    Node* current = head;
+    while (current != NULL) {
+        printf("%d -> ", current->data);
+        current = current->next;
     }
-
-    Node* left = head;
-    Node* right = mid->next;
-    mid->next = NULL;
-
-    merge(&left);
-    merge(&right);
-
-    Node* merged = NULL;
-    Node** tail = &merged;
-
-    while (left && right) {
-        if (left->data.length <= right->data.length) {
-            *tail = left;
-            left = left->next;
-        }
-        else {
-            *tail = right;
-            right = right->next;
-        }
-        tail = &(*tail)->next;
-    }
-
-    *tail = left ? left : right;
-    *headRef = merged;
+    printf("NULL\n");
 }
 
-void printList(Node* head) {
-    while (head) {
-        printf("Material: %s, Length: %d, Ceiling Width: %d, Wall Height: %d\n",
-            head->data.material, head->data.length, head->data.ceilingWidth, head->data.wallHeight);
-        head = head->next;
+// Функция для поиска элемента в связанном списке
+Node* search(Node* head, int key) {
+    Node* current = head;
+    while (current != NULL) {
+        if (current->data == key) {
+            return current;
+        }
+        current = current->next;
     }
+    return NULL;
 }
-void main() 
-{
-    setlocale(LC_ALL, "RUS");
-    Cornice array[] = {
-        {"Wood",10,5,3},
-    {"Aluminium",8,4,2},
-    {"Plastic", 12,5,4 },
-    {"Steel", 6,3,2 },
-    {"Metal", 9,6,3}
-    };
-    int size = sizeof(array) / sizeof(array[0]);
 
-    Node* list = arrayToList(array, size);
-    merge(&list);
+// Функция для разделения связанного списка на две части
+void split(Node* source, Node** frontRef, Node** backRef) {
+    Node* fast;
+    Node* slow;
+    slow = source;
+    fast = source->next;
 
-    printf("Отсортированный список:\n");
-    printList(list);
+    while (fast != NULL) {
+        fast = fast->next;
+        if (fast != NULL) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *frontRef = source;
+    *backRef = slow->next;
+    slow->next = NULL;
+}
+
+// Функция для слияния двух отсортированных связанных списков
+Node* sortedMerge(Node* a, Node* b) {
+    Node* result = NULL;
+
+    if (a == NULL)
+        return b;
+    else if (b == NULL)
+        return a;
+
+    if (a->data <= b->data) {
+        result = a;
+        result->next = sortedMerge(a->next, b);
+    }
+    else {
+        result = b;
+        result->next = sortedMerge(a, b->next);
+    }
+    return result;
+}
+
+// Функция для сортировки связанного списка слиянием
+Node* mergeSort(Node* head) {
+    if (head == NULL || head->next == NULL) {
+        return head;
+    }
+
+    Node* a;
+    Node* b;
+
+    split(head, &a, &b);
+
+    a = mergeSort(a);
+    b = mergeSort(b);
+
+    return sortedMerge(a, b);
+}
+
+int main() {
+    setlocale(LC_ALL, "ru");
+    int size;
+    printf("Введите количество элементов: ");
+    scanf("%d", &size);
+
+    int* arr = (int*)malloc(size * sizeof(int));
+    printf("Введите элементы массива:\n");
+    for (int i = 0; i < size; i++) {
+        scanf("%d", &arr[i]);
+    }
+
+    Node* head = arrayToLinkedList(arr, size);
+    free(arr);
+
+    printf("Исходный связанный список:\n");
+    printLinkedList(head);
+
+    int key;
+    printf("Введите элемент для поиска: ");
+    scanf("%d", &key);
+    Node* found = search(head, key);
+    if (found) {
+        printf("Элемент %d найден.\n", key);
+    }
+    else {
+        printf("Элемент %d не найден.\n", key);
+    }
+
+    head = mergeSort(head);
+    printf("Отсортированный связанный список:\n");
+    printLinkedList(head);
+
+    // Освобождение памяти
+    Node* current = head;
+    Node* next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
 
     return 0;
 }

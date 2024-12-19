@@ -25,20 +25,20 @@ void enQueue(queue_list* que, TYPE element) {
         que->back->next = newNode;
     }
     else {
-        que->front = newNode; 
+        que->front = newNode;
     }
     que->back = newNode;
 }
 
 TYPE deQueue(queue_list* que) {
     if (que->front == NULL) {
-        return '\0'; 
+        return '\0';
     }
     struct Node* temp = que->front;
     TYPE value = temp->data;
     que->front = que->front->next;
     if (que->front == NULL) {
-        que->back = NULL; 
+        que->back = NULL;
     }
     free(temp);
     return value;
@@ -49,8 +49,7 @@ void queue_test() {
     Str.back = Str.front = NULL;
 
     char temp[NSTR];
-    system("chcp 1251");
-    puts("¬ведите строки:");
+    puts("¬ведите строку:");
     fgets(temp, NSTR - 1, stdin);
 
     for (int i = 0; i < NSTR - 1 && temp[i] != '\n' && temp[i]; i++) {
@@ -62,9 +61,8 @@ void queue_test() {
     }
 }
 
-int main() 
-{
-    setlocale(LC_ALL, "RUS");
+int main() {
+    setlocale(LC_ALL, "ru");
     queue_test();
     return 0;
 }

@@ -1,141 +1,232 @@
-#include<stdio.h>
-#include<locale.h>
-#include<stdlib.h>
-#define _LIST_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <locale.h>
+// Определение структуры узла списка
+struct listitem {
+    int number;
+    char name[80];
+    struct listitem* next;
+};
 
+// Тип указателя на узел списка
+typedef struct listitem* List;
 
-typedef struct listitem
-{
-	int number;
-	char name[80];
-	struct listitem* next;
-} *list;
-
-
-void initlist(list* node)
-{
-	node = (list)malloc(sizeof(list));
+// Инициализация списка пустым содержимым
+void initlist(List* list) {
+    *list = NULL;
 }
 
-void insertfront(list* node, int val)
-{
-	list newnode = malloc(sizeof(list));
-	newnode->number = val;
-	newnode->next = *node;
-	*node = newnode;
-}
-
-void insertback(list* node, int val)
-{
-	list newnode = malloc(sizeof(list));
-	newnode->number = val;
-	newnode->next = NULL;
-	if (*node == NULL)
-	{
-		*node = newnode;
-		return;
-	}
-	list temp = *node;
-	while (temp->next)
-	{
-		temp = temp->next;
-	}
-	temp->next = newnode;
-}
-
-void insertfront(list* node, char* str)
-{
-    list newnode = malloc(sizeof(struct listitem));
-    strcpy(newnode->name, str);
-    newnode->next = *node;
-    *node = newnode;
-}
-
-void insertback(list* node, char* str) 
-{
-    list newnode = malloc(sizeof(list));
-    strcpy(newnode->name, str);
-    newnode->next = NULL;
-
-    if (*node == NULL) 
-    {
-        *node = newnode;
-        return;
+// Вставка в список перед узлом со значением поля number=val
+void insertfront_number(List* list, int val) {
+    List newNode = (List)malloc(sizeof(struct listitem));
+    if (newNode == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти\n");
+        exit(1);
     }
-
-    list temp = *node;
-    while (temp->next) 
-    {
-        temp = temp->next;
-    }
-    temp->next = newnode;
+    newNode->number = val;
+    newNode->name[0] = '\0';
+    newNode->next = *list;
+    *list = newNode;
 }
 
-bool isempty(list* node) //?????
-{
-    if (*node==NULL)
-    {
-        return *node == NULL;
+// Вставка в список перед узлом со значением поля number=val
+void insertback_number(List* list, int val) {
+    List newNode = (List)malloc(sizeof(struct listitem));
+    if (newNode == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти\n");
+        exit(1);
     }
-}
+    newNode->number = val;
+    newNode->name[0] = '\0';
+    newNode->next = NULL;
 
-int length(list node) 
-{
-    int len = 0;
-    while (node) 
-    {
-        len++;
-        node = node->next;
+    if (*list == NULL) {
+        *list = newNode;
     }
-    return len;
-}
-
-void destroyItem(list* node, list nodee) 
-{
-    if (*node == NULL || node == NULL) return;
-
-    if (*node == nodee) 
-    {
-        *node = nodee->next;
-        free(nodee);
-        return;
-    }
-
-    list temp = *node;
-    while (temp->next && temp->next != nodee) 
-    {
-        temp = temp->next;
-    }
-
-    if (temp->next) 
-    {
-        temp->next = nodee->next;
-        free(nodee);
-    }
-}
-
-list getitem(list node, int n)
-{
-    while (node) 
-    {
-        if (node->number == n) 
-        {
-            return node;
+    else {
+        List current = *list;
+        while (current->next != NULL) {
+            current = current->next;
         }
-        node = node->next;
+        current->next = newNode;
+    }
+}
+
+// Вставка в список перед узлом со значением str в поле name
+void insertfront_name(List* list, char* str) {
+    List newNode = (List)malloc(sizeof(struct listitem));
+    if (newNode == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти\n");
+        exit(1);
+    }
+    newNode->number = 0;
+    strncpy(newNode->name, str, 79);
+    newNode->name[79] = '\0';
+    newNode->next = *list;
+    *list = newNode;
+}
+
+// Вставка в список перед узлом со значением str в поле name
+void insertback_name(List* list, char* str) {
+    List newNode = (List)malloc(sizeof(struct listitem));
+    if (newNode == NULL) {
+        fprintf(stderr, "Ошибка выделения памяти\n");
+        exit(1);
+    }
+    newNode->number = 0;
+    strncpy(newNode->name, str, 79);
+    newNode->next = NULL;
+
+    if (*list == NULL) {
+        *list = newNode;
+    }
+    else {
+        List current = *list;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+    }
+}
+
+// Проверяет, является ли список пустым
+bool isempty(List* list) {
+    return *list == NULL;
+}
+
+// Определение длины списка
+int length(List list) {
+    int count = 0;
+    while (list != NULL) {
+        count++;
+        list = list->next;
+    }
+    return count;
+}
+
+// Удаление заданного узла node из списка
+void destroyItem(List* list, List node) {
+    if (*list == NULL || node == NULL) {
+        return;
+    }
+
+    if (*list == node) {
+        *list = node->next;
+        free(node);
+        return;
+    }
+
+    List current = *list;
+    while (current->next != NULL && current->next != node) {
+        current = current->next;
+    }
+
+    if (current->next == node) {
+        current->next = node->next;
+        free(node);
+    }
+}
+
+// Нахождение узла со значением n в поле number
+List getitem_number(List list, int n) {
+    while (list != NULL) {
+        if (list->number == n) {
+            return list;
+        }
+        list = list->next;
     }
     return NULL;
 }
 
-list getitem(list node, char* str) 
-{
-    while (node)
-    {
-        if (strcmp(node->name, str) == 0) 
-        {
-            return node;
-        }
-        node = node->next;
+
+// Освобождение памяти, занятой списком
+void freelist(List* list) {
+    List current = *list;
+    while (current != NULL) {
+        List temp = current;
+        current = current->next;
+        free(temp);
     }
-    return NULL;
+    *list = NULL;
+}
+
+// Функция для вывода списка
+void printlist(List list) {
+    while (list != NULL) {
+        printf(": %d\n", list->number);
+        list = list->next;
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "ru");
+    List myList;
+    initlist(&myList);
+
+    int choice, number;;
+
+    while (1) {
+        printf("Выберите операцию:\n");
+        printf("1. Вставить элемент в начало списка \n");
+        printf("2. Вставить элемент в конец списка \n");
+        printf("3. Найти элемент\n");
+        printf("4. Удалить элемент\n");
+        printf("5. Вывести список\n");
+        printf("6. Выйти\n");
+        scanf("%d", &choice);
+        getchar(); // Считываем символ новой строки
+
+        switch (choice) {
+        case 1:
+            printf("Введите число: ");
+            scanf("%d", &number);
+            getchar(); // Считываем символ новой строки
+            insertfront_number(&myList, number);
+            break;
+        case 2:
+            printf("Введите число: ");
+            scanf("%d", &number);
+            getchar(); // Считываем символ новой строки
+            insertback_number(&myList, number);
+            break;
+        case 3:
+            printf("Введите число для поиска: ");
+            scanf("%d", &number);
+            getchar(); // Считываем символ новой строки
+            List item = getitem_number(myList, number);
+            if (item != NULL) {
+                printf("Найден элемент с числом %d: %s\n", item->number, item->name);
+            }
+            else {
+                printf("Элемент с числом %d не найден\n", number);
+            }
+            break;
+        case 4:
+            printf("Введите для удаления: ");
+            scanf("%d", &number);
+            getchar(); // Считываем символ новой строки
+            item = getitem_number(myList, number);
+            if (item != NULL) {
+                destroyItem(&myList, item);
+                printf("Элемент с числом %d удален\n", number);
+            }
+            else {
+                printf("Элемент с числом %d не найден\n", number);
+            }
+            break;
+        case 5:
+            printf("Список:\n");
+            printlist(myList);
+            break;
+        case 6:
+            freelist(&myList);
+            return 0;
+        default:
+            printf("Неверный выбор. Попробуйте снова.\n");
+        }
+    }
+
+    return 0;
 }

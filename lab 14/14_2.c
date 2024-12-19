@@ -1,36 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <locale.h>
-#include <stdarg.h>
-
-#define N 1000
-
-// Функция для заполнения массива значениями
-double* full_elements(double* ptr_array, int n) {
-    for (int i = 0; i < n; i++) {
-        ptr_array[i] = sin(i) + cos(i); // Пример заполнения значениями
-    }
-    return ptr_array;
-}
-
-// Функция для печати элементов массива
-int put_elements(double* ptr_array, int n) {
-    for (int i = 0; i < n; i++) {
-        printf("%lf ", ptr_array[i]);
-    }
-    printf("\n");
-    return 0;
-}
-
-// Функция для обработки элементов массива
-double* calc_elements(double* ptr_array, int n) {
-    for (int i = 0; i < n; i++) {
-        ptr_array[i] = sqrt(fabs(ptr_array[i])); // Пример обработки значений
-    }
-    return ptr_array;
-}
-
 // Функция для вычисления суммы элементов массива от индекса begin до индекса end включительно
 double sum_elements(double* ptr_array, int begin, int end) {
     double sum = 0.0;
@@ -50,82 +20,58 @@ int find_element(double* ptr_array, int n, double element) {
     return -1;
 }
 
-// Функция для поиска максимального по модулю значения, не равного заданному A
-double find_max_abs_not_equal(double* ptr_array, int n, ...) {
-    va_list args;
-    va_start(args, n);
-    double A = va_arg(args, double);
-    va_end(args);
-
-    double max_abs = -1;
-    for (int i = 0; i < n; i++) {
-        if (ptr_array[i] != A && fabs(ptr_array[i]) > max_abs) {
-            max_abs = fabs(ptr_array[i]);
-        }
-    }
-    return max_abs;
-}
-
 int main() {
     setlocale(LC_ALL, "ru");
-
-    double array[N];
     int size;
+    printf("Введите размер массива: ");
+    scanf_s("%d", &size);
 
-    printf("Введите размер массива > ");
-    scanf("%d", &size);
-
-    if (size > N) {
-        printf("Размер массива превышает допустимый предел.\n");
+    if (size <= 0) {
+        printf("Размер массива должен быть положительным числом.\n");
         return 1;
     }
 
-    full_elements(array, size);
+    double* array = (double*)malloc(size * sizeof(double));
+    if (array == NULL) {
+        printf("Ошибка выделения памяти.\n");
+        return 1;
+    }
 
-    printf("Исходный массив:\n");
-    put_elements(array, size);
+    printf("Введите элементы массива:\n");
+    for (int i = 0; i < size; i++) {
+        printf("Элемент %d: ", i);
+        scanf_s("%lf", &array[i]);
+    }
 
-    calc_elements(array, size);
-
-    printf("Обработанный массив:\n");
-    put_elements(array, size);
-
+    // Вычисление суммы элементов от индекса 1 до индекса 3
     int begin, end;
-    printf("Введите начальный индекс для суммы > ");
-    scanf("%d", &begin);
-    printf("Введите конечный индекс для суммы > ");
-    scanf("%d", &end);
+    printf("Введите начальный индекс для суммы: ");
+    scanf_s("%d", &begin);
+    printf("Введите конечный индекс для суммы: ");
+    scanf_s("%d", &end);
 
     if (begin < 0 || end >= size || begin > end) {
         printf("Некорректные индексы.\n");
-    }
-    else {
-        double sum = sum_elements(array, begin, end);
-        printf("Сумма элементов от индекса %d до индекса %d: %lf\n", begin, end, sum);
+        free(array);
+        return 1;
     }
 
-    double element;
-    printf("Введите значение для поиска > ");
-    scanf("%lf", &element);
+    double sum = sum_elements(array, begin, end);
+    printf("Сумма элементов от индекса %d до индекса %d: %.2f\n", begin, end, sum);
 
-    int index = find_element(array, size, element);
+    // Поиск элемента, равного заданному значению
+    double element_to_find;
+    printf("Введите элемент для поиска: ");
+    scanf_s("%lf", &element_to_find);
+
+    int index = find_element(array, size, element_to_find);
     if (index != -1) {
-        printf("Элемент %lf найден по индексу %d\n", element, index);
+        printf("Элемент %.2f найден по индексу %d\n", element_to_find, index);
     }
     else {
-        printf("Элемент %lf не найден\n", element);
+        printf("Элемент %.2f не найден\n", element_to_find);
     }
 
-    double A;
-    printf("Введите значение A для поиска максимального по модулю значения, не равного A > ");
-    scanf("%lf", &A);
-
-    double max_abs_not_equal = find_max_abs_not_equal(array, size, A);
-    if (max_abs_not_equal != -1) {
-        printf("Максимальное по модулю значение, не равное %lf: %lf\n", A, max_abs_not_equal);
-    }
-    else {
-        printf("Нет значений, не равных %lf\n", A);
-    }
-
+    free(array);
+    return 0;
 }

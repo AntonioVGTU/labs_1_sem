@@ -170,33 +170,35 @@ int saveToTextFile(router_t routers[], int count, const char* filename) {
     return 1;
 }
 
-int loadFromTextFile(router_t routers[], int* count, const char* filename) {
-    FILE* file = fopen(filename, "r");
+int loadFromTextFile(router_t routers[], int* count, const char* data_base) {
+    FILE* file = fopen(data_base, "r");
+    if (file == NULL) {
+        return 0; // Ошибка открытия файла
+    }
 
     *count = 0;
-    while
-        (fscanf(file, "%49[^,],%49[^,],%49[^,],%f,%d,%d,%d,%49[^,],%d,%49[^,],%f,%d\n",
-            routers[*count].manufacturer,
-            routers[*count].antennaType,
-            routers[*count].operatingModes,
-            &routers[*count].transmitterFrequency,
-            &routers[*count].dualBandOperation,
-            &routers[*count].ethernetPorts,
-            &routers[*count].meshSupport,
-            routers[*count].wifiStandard,
-            &routers[*count].ethernetSpeed,
-            routers[*count].wifiClass,
-            &routers[*count].transmitterPower,
-            &routers[*count].maxWirelessSpeed) == 12) {
+    while (fscanf(file, "%49[^,],%49[^,],%49[^,],%f,%d,%d,%d,%49[^,],%d,%49[^,],%f,%d\n",
+        routers[*count].manufacturer,
+        routers[*count].antennaType,
+        routers[*count].operatingModes,
+        &routers[*count].transmitterFrequency,
+        &routers[*count].dualBandOperation,
+        &routers[*count].ethernetPorts,
+        &routers[*count].meshSupport,
+        routers[*count].wifiStandard,
+        &routers[*count].ethernetSpeed,
+        routers[*count].wifiClass,
+        &routers[*count].transmitterPower,
+        &routers[*count].maxWirelessSpeed) == 12) {
         (*count)++;
         if (*count >= MAX_ROUTERS) {
-            return 2;
-            break;
+            fclose(file);
+            return 2; // Достигнуто максимальное количество записей
         }
     }
 
     fclose(file);
-    return 1;
+    return 1; // Успешное считывание данных
 }
 
 int bubbleSort(router_t* routers, int count, int criterion) {
@@ -387,6 +389,18 @@ int main() {
     int sortCr = 0;
     int cnt;
 
+    // Загрузка данных из файла при запуске программы
+    int result = loadFromTextFile(routers, &count, filename);
+    if (result == 1) {
+        printf("\nДанные успешно загружены из текстового файла.\n");
+    }
+    else if (result == 2) {
+        printf("\nДостигнуто максимальное количество записей.\n");
+    }
+    else {
+        printf("\nОшибка считывания данных из файла.\n");
+    }
+
     do {
         printf("Меню:\n");
         printf("1. Добавить новую запись\n");
@@ -413,8 +427,9 @@ int main() {
                 if (result1 == 1) {
                     printf("\nЗапись добавлена.\n");
                 }
-                else
+                else {
                     printf("\nОшибка добавления записи\n");
+                }
             }
             printf("Файл сохранён.\n");
             saveToTextFile(routers, count, filename);
@@ -457,23 +472,28 @@ int main() {
         }
         case 3: {
             int result3 = saveToTextFile(routers, count, filename);
-            if (result3 == 1)
+            if (result3 == 1) {
                 printf("\nДанные успешно сохранены в текстовый файл.\n");
-            else if (result3 == 2)
+            }
+            else if (result3 == 2) {
                 printf("Ошибка: невозможно открыть файл для записи.\n");
-            else
+            }
+            else {
                 printf("\nОшибка сохранения данных\n");
+            }
             break;
         }
         case 4: {
             int result4 = loadFromTextFile(routers, &count, filename);
-            if (result4 == 1)
+            if (result4 == 1) {
                 printf("\nДанные успешно загружены из текстового файла.\n");
-            else if (result4 == 2)
+            }
+            else if (result4 == 2) {
                 printf("\nДостигнуто максимальное количество записей.\n");
-            else
+            }
+            else {
                 printf("\nОшибка считывания данных\n");
-
+            }
             break;
         }
         case 5:
@@ -503,8 +523,9 @@ int main() {
                 printf("Поле успешно обновлено и сохранено.\n");
                 saveToTextFile(routers, count, filename);
             }
-            else
+            else {
                 printf("\nОшибка обновления поля\n");
+            }
             break;
         }
         case 7: {
@@ -521,8 +542,7 @@ int main() {
             }
             break;
         }
-        case 8:
-        {
+        case 8: {
             char manufacturer[50];
             printf("Введите производителя для удаления: ");
             scanf("%49s", manufacturer);
@@ -547,4 +567,7 @@ int main() {
             printf("Неверный выбор.\n");
         }
     } while (choice != 0);
+
+    free(routers); // Освобождение памяти
+    return 0;
 }
